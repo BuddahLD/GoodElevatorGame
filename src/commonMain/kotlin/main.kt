@@ -1,14 +1,12 @@
-import korlibs.korge.*
-import korlibs.korge.scene.*
-import korlibs.korge.view.*
 import korlibs.image.color.*
+import korlibs.korge.*
 import korlibs.korge.animate.*
 import korlibs.korge.input.*
-import korlibs.korge.ui.*
+import korlibs.korge.scene.*
+import korlibs.korge.view.*
 import korlibs.korge.view.align.*
 import korlibs.math.geom.*
 import korlibs.time.*
-import kotlin.time.*
 
 suspend fun main() = Korge(
     windowSize = Size(1920, 1080),
