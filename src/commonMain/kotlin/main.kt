@@ -13,16 +13,12 @@ suspend fun main() = Korge(
     backgroundColor = Colors["#2b2b2b"]
 ) {
     val sceneContainer = sceneContainer()
-
-
     sceneContainer.changeTo {
         MyScene()
     }
 }
 
 class MyScene : Scene() {
-    private var isElevatorMoving: Boolean = false
-    private var nextFloor: Int = 0
     private val elevatorButtons = mutableMapOf<Int, View>()
 
     override suspend fun SContainer.sceneMain() {
@@ -36,13 +32,9 @@ class MyScene : Scene() {
             position(x = 50, y = 150)
         }
 
-        val elevator = solidRect(width = 100, height = 150) {
-            rotation = 0.degrees
-//            anchor(.5, .5)
-            color = Colors.CORNFLOWERBLUE
-            alignBottomToBottomOf(floorsContainer)
-            alignLeftToRightOf(floorsContainer)
-        }
+        val elevator = elevator()
+        elevator.alignBottomToBottomOf(floorsContainer)
+        elevator.alignLeftToRightOf(floorsContainer)
 
         container {
             repeat(5) { iteration ->
@@ -52,29 +44,14 @@ class MyScene : Scene() {
                     position(x = 0, y = (buttonHeight + 24) * iteration)
                 }
                 button.onClick {
-                    if (isElevatorMoving) {
-                        nextFloor = (5 - iteration)
-                    } else {
-                        isElevatorMoving = true
-                        elevator.animate {
-                            val elevatorPositionX =
-                                floorsContainer.x + floorsContainer.children[iteration].width
-                            val elevatorPositionY =
-                                floorsContainer.y +
-                                    floorsContainer.children[iteration].height +
-                                    floorsContainer.children[iteration].y
+                    val elevatorPositionX =
+                        floorsContainer.x + floorsContainer.children[iteration].width
+                    val elevatorPositionY =
+                        floorsContainer.y +
+                            floorsContainer.children[iteration].height +
+                            floorsContainer.children[iteration].y
 
-                            moveTo(
-                                view = elevator,
-                                x = elevatorPositionX,
-                                y = elevatorPositionY,
-                                time = TimeSpan(milliseconds = 1000.0)
-                            )
-                            onComplete.add {
-                                isElevatorMoving = false
-                            }
-                        }
-                    }
+                    elevator.move(elevatorPositionX.toInt(), elevatorPositionY.toInt())
                 }
                 elevatorButtons += (5 - iteration) to button
                 text("${5 - iteration}") {
@@ -85,6 +62,5 @@ class MyScene : Scene() {
             }
             position(x = 1400, y = 200)
         }
-
     }
 }
