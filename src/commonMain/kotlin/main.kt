@@ -17,7 +17,7 @@ suspend fun main() = Korge(
     backgroundColor = Colors["#2b2b2b"]
 ) {
     sceneContainer {
-        changeTo { InGameScene() }
+        changeTo { TrainingScene() }
     }
 }
 
