@@ -5,6 +5,38 @@ import korlibs.time.*
 
 fun Container.elevator() = Elevator().addTo(this)
 
+interface IElevator {
+    val speed: Int
+    val peopleCount: Int
+    val color: String
+
+    fun drive(floor: Int)
+    fun stop()
+    fun help()
+}
+
+class Elevator2 : IElevator {
+    override val speed: Int = 5
+    override val peopleCount: Int = 0
+    override val color: String = "red"
+
+    override fun drive(floor: Int) {
+        println("Поїхали на поверх $floor")
+    }
+
+    override fun stop() {
+        println("Стоп")
+    }
+
+    override fun help() {
+        println("Допомога")
+    }
+
+    companion object {
+        private const val MAX_PEOPLE_COUNT = 7
+    }
+}
+
 class Elevator(
     elevatorWidth: Int = 100,
     elevatorHeight: Int = 150,
