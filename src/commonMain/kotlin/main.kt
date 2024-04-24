@@ -14,7 +14,7 @@ import korlibs.math.geom.*
  */
 suspend fun main() = Korge(
     windowSize = Size(1920, 1080),
-    backgroundColor = Colors["#2b2b2b"]
+    backgroundColor = Colors["#2b2b2b"],
 ) {
     sceneContainer {
         changeTo { TrainingScene() }
