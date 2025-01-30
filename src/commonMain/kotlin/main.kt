@@ -17,16 +17,19 @@ suspend fun main() = Korge(
     backgroundColor = Colors["#2b2b2b"],
 ) {
     sceneContainer {
-        changeTo { TrainingScene() }
+        changeTo { InGameScene() }
     }
 }
 
 class InGameScene : Scene() {
     private val elevatorButtons = mutableMapOf<Int, View>()
+    // Track current floor (1-based to match button numbers)
+    private var currentElevatorFloor = 1
+    private val timePerFloor = 2000 // 2 second per floor
 
-    private fun Container.ceiling() =
+    private fun Container.ceiling(color: RGBA = Colors.CORNFLOWERBLUE) =
         solidRect(width = 1000, height = 15) {
-            color = Colors.CORNFLOWERBLUE
+            this.color = color
         }
 
     private fun Container.wall(height: Int = 150) =
@@ -39,10 +42,14 @@ class InGameScene : Scene() {
             color = Colors.ANTIQUEWHITE
         }
 
+    // TODO Should we have ceiling + wall + floor OR wall + floor? If we have ceiling - should
+    //  we accept "stacking" ceiling/floor in between storeys?
     private fun Container.storey() = container {
-        ceiling()
+//        ceiling()
         wall()
-        floor()
+        floor().apply {
+            alignTopToBottomOf(wall())
+        }
     }
 
     override suspend fun SContainer.sceneMain() {
@@ -51,19 +58,34 @@ class InGameScene : Scene() {
             val storey2 = storey()
             val storey3 = storey()
             val storey4 = storey()
-            val storey5 = storey()
+            val storey5 = storey().apply {
+                ceiling(
+                    color = Colors.ANTIQUEWHITE
+                ).alignTopToTopOf(this)
+            }
 
-            storey2.alignBottomToTopOf(storey3)
-            storey3.alignBottomToTopOf(storey4)
-            storey4.alignBottomToTopOf(storey5)
-            storey5.alignBottomToTopOf(storey1)
+            storey5.alignTopToTopOf(this)  // Top floor
+            storey4.alignTopToBottomOf(storey5)
+            storey3.alignTopToBottomOf(storey4)
+            storey2.alignTopToBottomOf(storey3)
+            storey1.alignTopToBottomOf(storey2)  // Ground floor
 
-            position(x = 0, y = 150)
+            position(x = 0, y = 50)
         }
 
         val elevator = elevator()
-        elevator.alignBottomToBottomOf(house)
-        elevator.alignLeftToRightOf(house)
+
+        // Get the ground floor (storey1) which is the first child of house
+        val groundStorey = house.children.firstOrNull()
+        if (groundStorey != null) {
+            val groundFloor = (groundStorey as Container).children.lastOrNull()
+            if (groundFloor != null) {
+                elevator.position(
+                    x = house.x + groundStorey.x + groundStorey.width,
+                    y = house.y + groundStorey.y + groundFloor.y
+                )
+            }
+        }
 
         container {
             repeat(5) { iteration ->
@@ -73,14 +95,27 @@ class InGameScene : Scene() {
                     position(x = 0, y = (buttonHeight + 24) * iteration)
                 }
                 button.onClick {
-                    val elevatorPositionX =
-                        house.x + house.children[iteration].width
-                    val elevatorPositionY =
-                        house.y +
-                            house.children[iteration].height +
-                            house.children[iteration].y
+                    val targetFloor = 5 - iteration // Convert iteration to floor number (1-5)
+                    val targetStorey = house.children.getOrNull(4 - iteration)
+                    if (targetStorey != null) {
+                        val floor = (targetStorey as Container).children.lastOrNull()
+                        if (floor != null) {
+                            val elevatorPositionX = house.x + targetStorey.x + targetStorey.width
+                            val elevatorPositionY = house.y + targetStorey.y + floor.y
 
-                    elevator.move(elevatorPositionX.toInt(), elevatorPositionY.toInt())
+                            // Calculate travel time based on floors traversed
+                            val floorsToTravel = kotlin.math.abs(targetFloor - currentElevatorFloor)
+                            val travelTime = floorsToTravel * timePerFloor
+
+                            elevator.move(
+                                posX = elevatorPositionX.toInt(),
+                                posY = elevatorPositionY.toInt(),
+                                timeMs = travelTime
+                            )
+                            
+                            currentElevatorFloor = targetFloor
+                        }
+                    }
                 }
                 elevatorButtons += (5 - iteration) to button
                 text("${5 - iteration}") {
