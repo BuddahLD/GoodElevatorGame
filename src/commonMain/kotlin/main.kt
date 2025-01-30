@@ -5,6 +5,7 @@ import korlibs.korge.scene.*
 import korlibs.korge.view.*
 import korlibs.korge.view.align.*
 import korlibs.math.geom.*
+import spawner.*
 
 /**
  * This is a game about a house with an elevator. NPCs are being spawned on floors, then they
@@ -20,6 +21,8 @@ suspend fun main() = Korge(
         changeTo { InGameScene() }
     }
 }
+
+const val FloorHeight = 15
 
 class InGameScene : Scene() {
     private val elevatorButtons = mutableMapOf<Int, View>()
@@ -38,7 +41,7 @@ class InGameScene : Scene() {
         }
 
     private fun Container.floor() =
-        solidRect(width = 1000, height = 15) {
+        solidRect(width = 1000, height = FloorHeight) {
             color = Colors.ANTIQUEWHITE
         }
 
@@ -126,5 +129,29 @@ class InGameScene : Scene() {
             }
             position(x = 1400, y = 200)
         }
+
+        val passengerSpawner = Spawner(
+            passengersCount = 10,
+            storeyCount = 5,
+            spawnTimeRange = 1000L..4000L,
+        )
+        passengerSpawner.setOnSpawnAction { spawnedStorey, desiredStorey ->
+            println("spawnedStorey = $spawnedStorey")
+            val targetStorey = house.children.getOrNull(spawnedStorey.dec())
+            val passengersCount = passengerSpawner.getPassengersCount(spawnedStorey)
+            targetStorey?.let {
+                val firstPassengerX = house.x + targetStorey.x + targetStorey.width - PassengerRectWidth*2
+                val firstPassengerY = house.y + targetStorey.y + targetStorey.height - FloorHeight - PassengerRectHeight
+                val newPassenger = Passenger(
+                    spawnX = firstPassengerX - (passengersCount * PassengerRectWidth) - (passengersCount * PassengersPadding),
+                    spawnY = firstPassengerY,
+                    spawnStoreyNum = spawnedStorey,
+                    desiredStoreyNum = desiredStorey
+                ).addTo(this)
+
+                return@setOnSpawnAction newPassenger
+            }
+        }
+        passengerSpawner.startSpawning()
     }
 }
