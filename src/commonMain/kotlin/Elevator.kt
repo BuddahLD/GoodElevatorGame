@@ -54,7 +54,7 @@ class Elevator(
     }
 
     // TODO make move function accept floors instead of position
-    suspend fun move(posX: Int, posY: Int, time: Int = 1000) {
+    suspend fun move(posX: Int, posY: Int, timeMs: Int = 1000) {
         if (isMoving) {
             // nextFloor = (5 - iteration)
             // when floor is added as an argument - implement this `if` logic
@@ -65,7 +65,7 @@ class Elevator(
                     view = this@Elevator,
                     x = posX,
                     y = posY,
-                    time = TimeSpan(milliseconds = time.toDouble())
+                    time = TimeSpan(milliseconds = timeMs.toDouble())
                 )
                 onComplete.add {
                     isMoving = false
