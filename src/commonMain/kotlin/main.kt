@@ -132,10 +132,10 @@ class InGameScene : Scene() {
 
         val passengerSpawner = Spawner(
             passengersCount = 10,
-            storeyCount = 5,
+            storeyNumber = 5,
             spawnTimeRange = 1000L..4000L,
         )
-        passengerSpawner.setOnSpawnAction { spawnedStorey, desiredStorey ->
+        passengerSpawner.setOnSpawnAction { passengerInfo ->
             println("spawnedStorey = $spawnedStorey")
             val targetStorey = house.children.getOrNull(spawnedStorey.dec())
             val passengersCount = passengerSpawner.getPassengersCount(spawnedStorey)
@@ -143,15 +143,12 @@ class InGameScene : Scene() {
                 val firstPassengerX = house.x + targetStorey.x + targetStorey.width - PassengerRectWidth*2
                 val firstPassengerY = house.y + targetStorey.y + targetStorey.height - FloorHeight - PassengerRectHeight
                 val newPassenger = Passenger(
+                    info = passengerInfo,
                     spawnX = firstPassengerX - (passengersCount * PassengerRectWidth) - (passengersCount * PassengersPadding),
                     spawnY = firstPassengerY,
-                    spawnStoreyNum = spawnedStorey,
-                    desiredStoreyNum = desiredStorey
                 ).addTo(this)
-
-                return@setOnSpawnAction newPassenger
             }
         }
-        passengerSpawner.startSpawning()
+        passengerSpawner.initSpawner()
     }
 }
